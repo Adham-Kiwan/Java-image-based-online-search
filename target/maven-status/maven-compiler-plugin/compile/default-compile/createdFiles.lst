@@ -1,0 +1,10 @@
+pricing\PriceFetcher.class
+Main.class
+product\ProductIdentifier.class
+product\Product.class
+ocr\BarcodeScanner.class
+pricing\AmazonPriceFetcher.class
+pricing\EbayPriceFetcher.class
+core\ProductSearchEngine.class
+ocr\OCRService.class
+ocr\TesseractOCRService.class
