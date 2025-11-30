@@ -15,16 +15,18 @@ import java.util.Map;
 /**
  * PriceFetcher uses Selenium WebDriver to fetch product prices from multiple
  * e-commerce websites.
- * Supported sites (examples): Amazon, eBay, Walmart.
+ * <p>
+ * Supported sites (examples): Amazon, eBay, Walmart, Apple Store, iStyle, Adkomsal.
  * Extend or modify selectors as needed for more sites.
  */
 public class PriceFetcher {
 
+    /** Timeout duration for WebDriver waits */
     private static final Duration TIMEOUT = Duration.ofSeconds(15);
 
     /**
      * Fetches prices from multiple sites for the given product name.
-     * 
+     *
      * @param productName the name of the product to search for
      * @return map of website name to StoreResult (price string and url)
      */
@@ -43,7 +45,11 @@ public class PriceFetcher {
     }
 
     /**
-     * Fetch the first product price from Amazon search results.
+     * Fetches the first product price from Amazon search results.
+     *
+     * @param driver      WebDriver instance
+     * @param productName Product to search for
+     * @return price string or error message
      */
     public String fetchAmazonPrice(WebDriver driver, String productName) {
         try {
@@ -51,9 +57,7 @@ public class PriceFetcher {
                     + "&language=en_US&currency=CAD&ref=nb_sb_noss_1";
             driver.get(url);
             WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
-            // Wait for search results
             wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("div.s-main-slot.s-result-list")));
-            // Find the first price-whole element in results
             WebElement priceWhole = wait.until(ExpectedConditions.visibilityOfElementLocated(
                     By.cssSelector("span.a-price-whole")));
             return priceWhole.getText();
@@ -63,7 +67,11 @@ public class PriceFetcher {
     }
 
     /**
-     * Fetch the first product price from Adkomsal search results.
+     * Fetches the first product price from Adkomsal search results.
+     *
+     * @param driver      WebDriver instance
+     * @param productName Product to search for
+     * @return price string or error message
      */
     public String fetchAdkomsalPrice(WebDriver driver, String productName) {
         try {
@@ -71,19 +79,13 @@ public class PriceFetcher {
             driver.get(url);
 
             WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
+            wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("ul.products li.product")));
 
-            // Wait for a product container to be present
-            wait.until(ExpectedConditions.presenceOfElementLocated(
-                    By.cssSelector("ul.products li.product")));
-
-            // Click first product link
             WebElement firstItemLink = wait.until(ExpectedConditions.elementToBeClickable(
                     By.cssSelector("ul.products li.product a.woocommerce-LoopProduct-link")));
             String itemUrl = firstItemLink.getAttribute("href");
 
             driver.get(itemUrl);
-
-            // Fetch the price element
             WebElement priceElem = wait.until(ExpectedConditions.visibilityOfElementLocated(
                     By.cssSelector("span.woocommerce-Price-amount.amount")));
 
@@ -94,7 +96,11 @@ public class PriceFetcher {
     }
 
     /**
-     * Fetch price from Apple Store search results.
+     * Fetches product price from Apple Store search results.
+     *
+     * @param driver      WebDriver instance
+     * @param productName Product to search for
+     * @return price string or error message
      */
     public String fetchAppleStorePrice(WebDriver driver, String productName) {
         try {
@@ -102,7 +108,6 @@ public class PriceFetcher {
             driver.get(url);
 
             WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
-
             WebElement priceElem = wait.until(ExpectedConditions.visibilityOfElementLocated(
                     By.cssSelector("span.rf-producttile-pricecurrent")));
 
@@ -113,7 +118,11 @@ public class PriceFetcher {
     }
 
     /**
-     * Fetch price from iStyle Lebanon search results.
+     * Fetches product price from iStyle Lebanon search results.
+     *
+     * @param driver      WebDriver instance
+     * @param productName Product to search for
+     * @return price string or error message
      */
     public String fetchIstylePrice(WebDriver driver, String productName) {
         try {
@@ -121,11 +130,9 @@ public class PriceFetcher {
             driver.get(url);
 
             WebDriverWait wait = new WebDriverWait(driver, TIMEOUT);
-
             WebElement priceElem = wait.until(ExpectedConditions.visibilityOfElementLocated(
                     By.cssSelector("div.fbt_cartCSS.price.price-product-GA-42167675060322.price-product")));
-            String price = priceElem.getAttribute("data-prodprice");
-            return price;
+            return priceElem.getAttribute("data-prodprice");
         } catch (Exception e) {
             return "Error: " + e.getMessage();
         }
@@ -133,6 +140,8 @@ public class PriceFetcher {
 
     /**
      * Utility to create a headless ChromeDriver.
+     *
+     * @return WebDriver instance
      */
     private WebDriver getHeadlessDriver() {
         System.setProperty("webdriver.chrome.driver", "/opt/homebrew/bin/chromedriver");
@@ -141,7 +150,6 @@ public class PriceFetcher {
 
         ChromeOptions options = new ChromeOptions();
         options.setBinary("/Applications/Brave Browser.app/Contents/MacOS/Brave Browser");
-
         options.addArguments("--disable-gpu");
         options.addArguments("--window-size=1200,800");
 
@@ -149,11 +157,13 @@ public class PriceFetcher {
     }
 
     /**
-     * URL-encode a string for use in query parameters.
+     * URL-encodes a string for use in query parameters.
+     *
+     * @param s input string
+     * @return encoded string
      */
     private String encode(String s) {
         try {
-            // Remove newlines and extra spaces
             s = s.replaceAll("\\s+", " ").trim();
             return java.net.URLEncoder.encode(s, "UTF-8");
         } catch (Exception e) {

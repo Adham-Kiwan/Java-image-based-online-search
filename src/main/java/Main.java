@@ -4,8 +4,26 @@ import ocr.BarcodeScanner;
 
 import java.util.Scanner;
 
+/**
+ * Main class for the Product Management application.
+ * Provides a menu-driven interface to search, edit, and delete products
+ * using OCR and barcode scanning.
+ */
 public class Main {
 
+    /**
+     * Entry point of the application.
+     * <p>
+     * Displays a menu for the user to:
+     * <ul>
+     *     <li>Search for a product</li>
+     *     <li>Change a product price</li>
+     *     <li>Delete products older than a specified date/time</li>
+     *     <li>Exit the application</li>
+     * </ul>
+     *
+     * @param args Command-line arguments (not used)
+     */
     public static void main(String[] args) {
         try (Scanner scanner = new Scanner(System.in)) {
 

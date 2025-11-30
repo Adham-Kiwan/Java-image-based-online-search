@@ -14,8 +14,19 @@ import javax.imageio.ImageIO;
 import net.sourceforge.tess4j.ITessAPI;
 import net.sourceforge.tess4j.Tesseract;
 
+/**
+ * Implementation of OCRService using Tesseract OCR engine.
+ * Provides methods to extract text from images with preprocessing steps.
+ */
 public class TesseractOCRService implements OCRService {
 
+    /**
+     * Extracts text from an image file using Tesseract OCR.
+     *
+     * @param imagePath path to the image file
+     * @return extracted text from the image
+     * @throws Exception if the image cannot be read or OCR fails
+     */
     @Override
     public String extractText(String imagePath) throws Exception {
         BufferedImage input = ImageIO.read(new File(imagePath));
@@ -28,34 +39,33 @@ public class TesseractOCRService implements OCRService {
         tesseract.setLanguage("eng");
         tesseract.setOcrEngineMode(ITessAPI.TessOcrEngineMode.OEM_LSTM_ONLY);
         tesseract.setPageSegMode(ITessAPI.TessPageSegMode.PSM_AUTO);
-        //tesseract.setTessVariable("user_defined_dpi", "500");
 
         return tesseract.doOCR(preprocessed);
     }
 
+    /**
+     * Preprocesses the image to enhance OCR accuracy.
+     *
+     * @param src input image
+     * @return preprocessed image
+     */
     private BufferedImage preprocessForOCR(BufferedImage src) {
-        // Convert to grayscale
         BufferedImage gray = toGrayscale(src);
-
-        // Resize small images
         int minDim = Math.min(gray.getWidth(), gray.getHeight());
         if (minDim < 300) gray = scaleImage(gray, 2.0);
-
-        // Denoise using median-like blur
         BufferedImage denoised = medianBlur(gray);
-
-        // Contrast enhancement
         BufferedImage contrasted = contrastStretch(denoised);
-
-        // Adaptive thresholding
         BufferedImage binary = adaptiveThreshold(contrasted);
-
-        // Sharpen image
         BufferedImage sharp = sharpenImage(binary);
-
         return sharp;
     }
 
+    /**
+     * Converts an image to grayscale.
+     *
+     * @param src input image
+     * @return grayscale image
+     */
     private BufferedImage toGrayscale(BufferedImage src) {
         BufferedImage gray = new BufferedImage(src.getWidth(), src.getHeight(),
                 BufferedImage.TYPE_BYTE_GRAY);
@@ -65,6 +75,13 @@ public class TesseractOCRService implements OCRService {
         return gray;
     }
 
+    /**
+     * Scales an image by a given factor.
+     *
+     * @param src   input image
+     * @param scale scaling factor
+     * @return scaled image
+     */
     private BufferedImage scaleImage(BufferedImage src, double scale) {
         int w = (int) Math.round(src.getWidth() * scale);
         int h = (int) Math.round(src.getHeight() * scale);
@@ -74,10 +91,14 @@ public class TesseractOCRService implements OCRService {
         g.dispose();
         return scaled;
     }
-    
 
+    /**
+     * Applies a simple median-like blur to reduce noise.
+     *
+     * @param src input image
+     * @return denoised image
+     */
     private BufferedImage medianBlur(BufferedImage src) {
-        // Simple 3x3 median blur for noise removal
         float[] kernel = {
                 1/9f, 1/9f, 1/9f,
                 1/9f, 1/9f, 1/9f,
@@ -88,6 +109,12 @@ public class TesseractOCRService implements OCRService {
         return op.filter(src, null);
     }
 
+    /**
+     * Enhances contrast of an image.
+     *
+     * @param src input image
+     * @return contrast-stretched image
+     */
     private BufferedImage contrastStretch(BufferedImage src) {
         Raster r = src.getRaster();
         int w = src.getWidth(), h = src.getHeight();
@@ -112,6 +139,12 @@ public class TesseractOCRService implements OCRService {
         return out;
     }
 
+    /**
+     * Applies adaptive thresholding to convert grayscale to binary image.
+     *
+     * @param src input grayscale image
+     * @return binary image
+     */
     private BufferedImage adaptiveThreshold(BufferedImage src) {
         int w = src.getWidth();
         int h = src.getHeight();
@@ -119,7 +152,6 @@ public class TesseractOCRService implements OCRService {
         int[] pixels = new int[w * h];
         raster.getPixels(0, 0, w, h, pixels);
 
-        // Compute mean intensity
         int sum = 0;
         for (int v : pixels) sum += v;
         int mean = sum / pixels.length;
@@ -136,6 +168,12 @@ public class TesseractOCRService implements OCRService {
         return bin;
     }
 
+    /**
+     * Sharpens the image to improve OCR accuracy.
+     *
+     * @param src input image
+     * @return sharpened image
+     */
     private BufferedImage sharpenImage(BufferedImage src) {
         float[] sharpKernel = {
                 0.f, -1.f, 0.f,

@@ -8,6 +8,17 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Handles product lookup, price scraping, and database updates.
+ * <p>
+ * Provides methods to:
+ * <ul>
+ *     <li>Search for a product in the database</li>
+ *     <li>Scrape prices from websites if the product is not found</li>
+ *     <li>Save the best price to the database</li>
+ *     <li>Compare and update prices if a lower price is found</li>
+ * </ul>
+ */
 public class ProductIdentifier {
 
     private static final OkHttpClient client = new OkHttpClient();
@@ -17,11 +28,11 @@ public class ProductIdentifier {
     private static String API_BASE = "http://localhost:8080";
 
     /**
-     * Called from Main.java — performs:
-     * 1. DB check
-     * 2. Scraping if not found
-     * 3. Saving scraped results
-     * 4. Showing best price
+     * Looks up a product by its name or barcode, scrapes prices if not found in DB,
+     * saves only the best price, and prints the best store price.
+     *
+     * @param extractedText the product name or barcode extracted from an image
+     * @throws Exception if HTTP requests or JSON parsing fails
      */
     public static void runProductLookup(String extractedText) throws Exception {
         extractedText = extractedText.replaceAll("\\s+", " ").trim();
@@ -101,6 +112,12 @@ public class ProductIdentifier {
         System.out.println(bestStore + " — " + bestData.price);
     }
 
+    /**
+     * Looks up a product and updates its price in the database if a lower price is found.
+     *
+     * @param extractedText the product name or barcode extracted from an image
+     * @throws Exception if HTTP requests or JSON parsing fails
+     */
     public static void runProductLookupToEditPrice(String extractedText) throws Exception {
         extractedText = extractedText.replaceAll("\\s+", " ").trim();
         System.out.println("Searching for product: " + extractedText);
@@ -197,7 +214,12 @@ public class ProductIdentifier {
         System.out.println("\nBest scraped price: " + bestPrice + " at " + bestStore);
     }
 
-    // Extracts best price from DB JSON
+    /**
+     * Extracts the best price from the database JSON response.
+     *
+     * @param jsonArray JSON array of products from the database
+     * @return String containing the best product identifier and price
+     */
     public static String getBestPriceFromDB(String jsonArray) {
         try {
             java.util.List<java.util.Map<String, Object>> list = mapper.readValue(jsonArray, mapper.getTypeFactory()
@@ -226,7 +248,12 @@ public class ProductIdentifier {
         }
     }
 
-    // Extracts best price from scraped results
+    /**
+     * Extracts the best price from a map of scraped store results.
+     *
+     * @param prices Map of store names to StoreResult objects
+     * @return String containing the store name and its best price
+     */
     public static String getBestPriceFromResults(Map<String, pricing.StoreResult> prices) {
         double best = Double.MAX_VALUE;
         String bestStore = null;
