@@ -1,3 +1,6 @@
 [submodule "server"]
 	path = server
 	url = git@github.com:Adham-Kiwan/PriceCacheAPI.git
+[submodule "PriceCacheAPI"]
+	path = PriceCacheAPI
+	url = https://github.com/Adham-Kiwan/PriceCacheAPI.git
